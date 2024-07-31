@@ -1,5 +1,8 @@
 ## Gerenciar Alunos
 Esta é uma aplicação React desenvolvida para gerenciar alunos, incluindo funcionalidades para adicionar, editar, buscar e deletar alunos. A aplicação é integrada a uma API backend para persistência de dados.
+A aplicação é baseada no seguinte projeto Figma:
+https://www.figma.com/design/M8G3hC3tAxr4594fcYRyen/Untitled?node-id=0-1&t=ixgFFGgikSAaixRy-1
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
