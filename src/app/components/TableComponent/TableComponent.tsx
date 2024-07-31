@@ -1,24 +1,17 @@
-"use client";
 import React, { useEffect, useState } from "react";
 import { Table, Spin, notification, Button, Modal, Form, Input } from "antd";
-import axios from "axios";
-import type { ColumnsType } from "antd/es/table";
 import { Container } from "./style";
+import { fetchAlunos, createAluno, updateAluno, deleteAluno, Aluno } from '../../services/api';
 
 const { Search } = Input;
-
-interface Aluno {
-  id: string;
-  name: string;
-  cpf: string;
-  email: string;
-}
 
 const TableComponent: React.FC = () => {
   const [data, setData] = useState<Aluno[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [editingAluno, setEditingAluno] = useState<Aluno | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState<boolean>(false);
+  const [selectedAlunoId, setSelectedAlunoId] = useState<string | null>(null);
   const [form] = Form.useForm();
   const [searchTerm, setSearchTerm] = useState<string>("");
 
@@ -29,32 +22,44 @@ const TableComponent: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/api/alunos");
-      setData(response.data);
-      setLoading(false);
+      const alunos = await fetchAlunos();
+      setData(alunos);
     } catch (error) {
-      setLoading(false);
       notification.error({
         message: "Erro",
         description: "Falha ao buscar dados dos alunos",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await axios.delete(`/api/alunos/${id}`);
-      notification.success({
-        message: "Sucesso",
-        description: "Aluno deletado com sucesso",
-      });
-      fetchData();
-    } catch (error) {
-      notification.error({
-        message: "Erro",
-        description: "Falha ao deletar aluno",
-      });
+  const handleDelete = async () => {
+    if (selectedAlunoId) {
+      try {
+        await deleteAluno(selectedAlunoId);
+        notification.success({
+          message: "Sucesso",
+          description: "Aluno deletado com sucesso",
+        });
+        setIsConfirmModalVisible(false);
+        fetchData();
+      } catch (error) {
+        notification.error({
+          message: "Erro",
+          description: "Falha ao deletar aluno",
+        });
+      }
     }
+  };
+
+  const showConfirmModal = (id: string) => {
+    setSelectedAlunoId(id);
+    setIsConfirmModalVisible(true);
+  };
+
+  const handleConfirmModalCancel = () => {
+    setIsConfirmModalVisible(false);
   };
 
   const handleEdit = (aluno: Aluno) => {
@@ -66,11 +71,19 @@ const TableComponent: React.FC = () => {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      await axios.put(`/api/alunos/${editingAluno?.id}`, values);
-      notification.success({
-        message: "Sucesso",
-        description: "Aluno atualizado com sucesso",
-      });
+      if (editingAluno?.id) {
+        await updateAluno(editingAluno.id, values);
+        notification.success({
+          message: "Sucesso",
+          description: "Aluno atualizado com sucesso",
+        });
+      } else {
+        await createAluno(values);
+        notification.success({
+          message: "Sucesso",
+          description: "Aluno criado com sucesso",
+        });
+      }
       setIsModalVisible(false);
       fetchData();
     } catch (error) {
@@ -80,7 +93,7 @@ const TableComponent: React.FC = () => {
       });
     }
   };
-
+  
   const handleModalCancel = () => {
     setIsModalVisible(false);
   };
@@ -92,7 +105,7 @@ const TableComponent: React.FC = () => {
       aluno.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const columns: ColumnsType<Aluno> = [
+  const columns = [
     {
       title: "Nome",
       dataIndex: "name",
@@ -116,7 +129,7 @@ const TableComponent: React.FC = () => {
           <Button onClick={() => handleEdit(record)} style={{ marginRight: 8 }}>
             Editar
           </Button>
-          <Button onClick={() => handleDelete(record.id)} danger>
+          <Button onClick={() => showConfirmModal(record.id)} danger>
             Deletar
           </Button>
         </span>
@@ -130,19 +143,18 @@ const TableComponent: React.FC = () => {
 
   return (
     <>
-      
       <Container>
-      <Search
-        placeholder="Buscar por nome, CPF ou email"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={{
-          margin: 20,
-          width: "80%",
-          maxWidth: "600px",
-        }}
-        enterButton
-      />
+        <Search
+          placeholder="Buscar por nome, CPF ou email"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            margin: 20,
+            width: "80%",
+            maxWidth: "600px",
+          }}
+          enterButton
+        />
         <Table
           dataSource={filteredData}
           columns={columns}
@@ -180,6 +192,14 @@ const TableComponent: React.FC = () => {
               <Input />
             </Form.Item>
           </Form>
+        </Modal>
+        <Modal
+          title="Confirmar Deleção"
+          open={isConfirmModalVisible}
+          onOk={handleDelete}
+          onCancel={handleConfirmModalCancel}
+        >
+          <p>Você tem certeza de que deseja deletar este aluno?</p>
         </Modal>
       </Container>
     </>

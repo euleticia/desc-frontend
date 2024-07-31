@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { FaSignOutAlt } from 'react-icons/fa';
+import { FaPlus } from "react-icons/fa";
 
 
 export const HeaderContainer = styled.header`
@@ -29,7 +29,7 @@ export const Logo = styled.div`
   }
 `;
 
-export const LogoutIcon = styled(FaSignOutAlt)`
+export const AddIcon = styled(FaPlus)`
   cursor: pointer;
   font-size: 1.5em;
   color: #8b8787;

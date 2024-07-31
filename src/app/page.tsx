@@ -1,11 +1,10 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client'
 import HeaderComponent from "./components/HeaderComponent/HeaderComponent";
 import TableComponent from "./components/TableComponent/TableComponent";
 
 export default function Home() {
   return (
-    <div>
+      <div>
       <HeaderComponent />
       <TableComponent />
     </div>
